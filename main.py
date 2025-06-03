@@ -99,7 +99,8 @@ st.dataframe(df.head())
 
 
 
-df = load_data()
+df = load_data(uploaded_file)
+
 
 # --- Total Disponível Acumulado (todos os meses) ---
 total_entradas_all = df.loc[df["tipo"] == "entrada", "valor"].sum()
