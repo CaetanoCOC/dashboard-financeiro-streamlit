@@ -1,5 +1,3 @@
-# main.py
-
 import streamlit as st
 import pandas as pd
 import unicodedata
@@ -34,19 +32,13 @@ def normalize(s: str) -> str:
     return no_acc.lower().strip()
 
 def fmt_brl(v: float) -> str:
-    s = f"{v:,.2f}"  # e.g. '1,234.56'
+    s = f"{v:,.2f}"
     return s.replace(",", "_").replace(".", ",").replace("_", ".")
 
 # --- Configurações de metas ---
 METAS_FILE = "metas.json"
-desired_cats = [
-    "Alimentação",
-    "Nubank",
-    "Transporte",
-    "Lazer"
-]
 
-def load_metas():
+def load_metas(categorias):
     if os.path.exists(METAS_FILE):
         with open(METAS_FILE, "r", encoding="utf-8") as f:
             try:
@@ -55,15 +47,12 @@ def load_metas():
                 data = {}
     else:
         data = {}
-    return {cat: float(data.get(cat, 0.0)) for cat in desired_cats}
+    return {cat: float(data.get(cat, 0.0)) for cat in categorias}
 
 def save_metas(metas):
     with open(METAS_FILE, "w", encoding="utf-8") as f:
         json.dump(metas, f, ensure_ascii=False, indent=2)
 
-metas = load_metas()
-
-# --- Carregamento de dados com cache ---
 # --- Upload e verificação ---
 uploaded_file = st.file_uploader("📁 Envie sua planilha Excel de finanças", type=["xlsx"])
 
@@ -88,30 +77,16 @@ def load_data(file):
         st.error(f"Erro ao carregar a planilha: {e}")
         st.stop()
 
-# --- Leitura final e feedback ---
+# --- Leitura final ---
 df = load_data(uploaded_file)
-
-
-
-
-
-
-
-df = load_data(uploaded_file)
-
-
-# --- Total Disponível Acumulado (todos os meses) ---
-total_entradas_all = df.loc[df["tipo"] == "entrada", "valor"].sum()
-total_saidas_all   = df.loc[df["tipo"] == "saida",   "valor"].sum()
-total_disponivel   = total_entradas_all - total_saidas_all
-st.metric(
-    label="💼 Total Disponível (acumulado)",
-    value=f"R$ {fmt_brl(total_disponivel)}"
-)
 
 # --- Sidebar: Metas e Filtros ---
 st.sidebar.markdown("---")
 st.sidebar.subheader("🎯 Metas por Categoria")
+
+desired_cats = sorted(df["categoria"].dropna().unique())
+metas = load_metas(desired_cats)
+
 for cat in desired_cats:
     metas[cat] = st.sidebar.number_input(
         label=f"Meta mensal ({cat})",
@@ -143,6 +118,15 @@ mostrar_geral = st.sidebar.checkbox("Visão Geral Mensal", value=True)
 mask = (df["data"].dt.year == ano_sel) & (df["data"].dt.month == mes_sel)
 df_sel = df.loc[mask]
 
+# --- Total Disponível Acumulado (todos os meses) ---
+total_entradas_all = df.loc[df["tipo"] == "entrada", "valor"].sum()
+total_saidas_all   = df.loc[df["tipo"] == "saida",   "valor"].sum()
+total_disponivel   = total_entradas_all - total_saidas_all
+st.metric(
+    label="💼 Total Disponível (acumulado)",
+    value=f"R$ {fmt_brl(total_disponivel)}"
+)
+
 # --- Métricas Principais ---
 entradas = df_sel.loc[df_sel["tipo"] == "entrada", "valor"].sum()
 saidas   = df_sel.loc[df_sel["tipo"] == "saida",   "valor"].sum()
@@ -152,7 +136,7 @@ c1.metric("💰 Entradas", f"R$ {fmt_brl(entradas)}")
 c2.metric("💸 Saídas",   f"R$ {fmt_brl(saidas)}")
 saldo_color = "green" if saldo >= 0 else "red"
 c3.markdown(
-    f"<div style='font-size:2rem; font-weight:bold;'>🧾 Saldo: "
+    f"<div style='font-size:2rem; font-weight:bold;'>📜 Saldo: "
     f"<span style='color:{saldo_color}'>R$ {fmt_brl(saldo)}</span></div>",
     unsafe_allow_html=True
 )
@@ -187,7 +171,6 @@ if mostrar_geral:
     st.markdown("---")
     st.subheader("Visão Geral Mensal")
 
-    # 1) Agrupa por mês e tipo
     monthly = (
         df
         .groupby([pd.Grouper(key="data", freq="M"), "tipo"])["valor"]
@@ -198,13 +181,11 @@ if mostrar_geral:
         monthly.index.to_period("M").strftime("%b/%Y")
     )
 
-    # 2) Prepara DataFrame para Altair
     mdf = monthly.reset_index()
     idx_col = mdf.columns[0]
     mdf = mdf.rename(columns={idx_col: "periodo"})
     mdf = mdf.melt(id_vars="periodo", var_name="tipo", value_name="valor")
 
-    # 3) Plota com Altair
     chart = (
         alt.Chart(mdf)
         .mark_line(point=True)
