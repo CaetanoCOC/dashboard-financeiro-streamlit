@@ -84,10 +84,18 @@ df = load_data(uploaded_file)
 st.sidebar.markdown("---")
 st.sidebar.subheader("🎯 Metas por Categoria")
 
-desired_cats = sorted(df["categoria"].dropna().unique())
-metas = load_metas(desired_cats)
+todas_categorias = sorted(df["categoria"].dropna().unique())
+categorias_selecionadas = st.sidebar.multiselect(
+    "Selecionar categorias para definir metas",
+    options=todas_categorias,
+    default=todas_categorias[:5]  # você pode trocar para vazio ou alguma sugestão
+)
 
-for cat in desired_cats:
+metas = load_metas(categorias_selecionadas)
+
+
+for cat in categorias_selecionadas:
+
     metas[cat] = st.sidebar.number_input(
         label=f"Meta mensal ({cat})",
         min_value=0.0,
@@ -154,7 +162,8 @@ st.bar_chart(gasto_cat)
 # --- Progresso de Metas Mensais ---
 st.markdown("---")
 st.subheader("📈 Progresso de Metas Mensais")
-for cat in desired_cats:
+for cat in categorias_selecionadas:
+
     meta_val = metas.get(cat, 0.0)
     gasto_val = (
         df_sel[(df_sel["categoria"] == cat) & (df_sel["tipo"] == "saida")]
