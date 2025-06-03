@@ -65,29 +65,38 @@ def save_metas(metas):
 metas = load_metas()
 
 # --- Carregamento de dados com cache ---
-# Upload do arquivo Excel
+# --- Upload e verificação ---
 uploaded_file = st.file_uploader("📁 Envie sua planilha Excel de finanças", type=["xlsx"])
 
-# Verificação se o usuário enviou o arquivo
 if uploaded_file is None:
     st.warning("Por favor, envie a planilha para visualizar o dashboard.")
     st.stop()
 
-# Função de leitura com cache
+# --- Função com tratamento de erro ---
 @st.cache_data(ttl=10)
 def load_data(file):
-    df = pd.read_excel(
-        file,
-        usecols="A:E",
-        engine="openpyxl",
-        converters={"valor": parse_val}
-    ).dropna(subset=["data"])
-    df["data"] = pd.to_datetime(df["data"], dayfirst=True)
-    df["tipo"] = df["E/D"].apply(normalize)
-    return df
+    try:
+        df = pd.read_excel(
+            file,
+            usecols="A:E",
+            engine="openpyxl",
+            converters={"valor": parse_val}
+        ).dropna(subset=["data"])
+        df["data"] = pd.to_datetime(df["data"], dayfirst=True)
+        df["tipo"] = df["E/D"].apply(normalize)
+        return df
+    except Exception as e:
+        st.error(f"Erro ao carregar a planilha: {e}")
+        st.stop()
 
-# Carrega o dataframe
+# --- Leitura final e feedback ---
 df = load_data(uploaded_file)
+st.success("✅ Planilha carregada com sucesso!")
+st.dataframe(df.head())
+
+
+
+
 
 
 df = load_data()
