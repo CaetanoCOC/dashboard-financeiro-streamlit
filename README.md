@@ -27,12 +27,7 @@ Este é um projeto de **dashboard financeiro interativo**, desenvolvido em **Pyt
 
 Caso você não tenha uma planilha pronta, use o modelo abaixo:
 
-📥 [Download modelo_financas.xlsx](modelo_financas.xlsx)
-
-| data       | categoria    | E/D     | valor   | descrição        |
-|------------|--------------|---------|---------|------------------|
-| 01/01/2025 | Alimentação  | Saída   | R$ 20,00| mercado          |
-| 01/01/2025 | Nubank       | Saída   | R$ 150,00| cartão de crédito|
+📥 [Download Modelo_Planilha_Financeira.xlsx](Modelo_Planilha_Financeira.xlsx)
 
 ---
 
