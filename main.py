@@ -91,8 +91,7 @@ def load_data(file):
 
 # --- Leitura final e feedback ---
 df = load_data(uploaded_file)
-st.success("✅ Planilha carregada com sucesso!")
-st.dataframe(df.head())
+
 
 
 
