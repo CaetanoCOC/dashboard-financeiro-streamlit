@@ -65,10 +65,19 @@ def save_metas(metas):
 metas = load_metas()
 
 # --- Carregamento de dados com cache ---
+# Upload do arquivo Excel
+uploaded_file = st.file_uploader("📁 Envie sua planilha Excel de finanças", type=["xlsx"])
+
+# Verificação se o usuário enviou o arquivo
+if uploaded_file is None:
+    st.warning("Por favor, envie a planilha para visualizar o dashboard.")
+    st.stop()
+
+# Função de leitura com cache
 @st.cache_data(ttl=10)
-def load_data(path="Financas.xlsx"):
+def load_data(file):
     df = pd.read_excel(
-        path,
+        file,
         usecols="A:E",
         engine="openpyxl",
         converters={"valor": parse_val}
@@ -76,6 +85,10 @@ def load_data(path="Financas.xlsx"):
     df["data"] = pd.to_datetime(df["data"], dayfirst=True)
     df["tipo"] = df["E/D"].apply(normalize)
     return df
+
+# Carrega o dataframe
+df = load_data(uploaded_file)
+
 
 df = load_data()
 
