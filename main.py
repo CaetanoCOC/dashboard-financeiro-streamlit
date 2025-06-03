@@ -43,8 +43,7 @@ desired_cats = [
     "Alimentação",
     "Nubank",
     "Transporte",
-    "Lazer",
-    "Clash of Clans"
+    "Lazer"
 ]
 
 def load_metas():
