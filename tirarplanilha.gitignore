@@ -1,0 +1,14 @@
+# Ignorar arquivos sensíveis
+*.xlsx
+metas.json
+
+# Ignorar notebooks
+*.ipynb
+
+# Ignorar ambientes virtuais
+.venv/
+__pycache__/
+*.pyc
+
+# Outros arquivos gerados
+poetry.lock
